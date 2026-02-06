@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "tailwindcss";
+:root {
+  --primary: #0f172a;       /* Slate 900 - ดูแพงและเป็นทางการกว่า */
+  --primary-accent: #2563eb;/* Blue 600 */
+  --secondary: #64748b;
+  --success: #10b981;
+  --background: #f1f5f9;    /* Slate 100 */
+  --surface: #ffffff;
+  /* เงาแบบนุ่มนวล (Soft Shadows) */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+body {
+  background-color: var(--background);
+  color: #1e293b;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* Card ดีไซน์ใหม่: เน้นความคลีน มีเส้นขอบบางๆ */
+  .menu-card {
+    @apply bg-white p-8 rounded-3xl border border-slate-200/60 transition-all duration-500 ease-out relative overflow-hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .menu-card:hover {
+    @apply border-blue-500/30 -translate-y-2;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* เพิ่มลูกเล่น Gradient บางๆ หลัง Card เมื่อ Hover */
+  .menu-card::before {
+    content: "";
+    @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-600 opacity-0 transition-opacity duration-500;
+  }
+
+  .menu-card:hover::before {
+    @apply opacity-100;
+  }
+
+  /* ปุ่มสไตล์ Corporate: ดูเข้มแข็ง มั่นคง */
+  .btn-primary {
+    @apply bg-slate-900 text-white px-6 py-3.5 rounded-2xl font-semibold shadow-sm
+           hover:bg-slate-800 hover:shadow-md active:scale-[0.98] transition-all 
+           flex items-center justify-center gap-2 w-full text-sm tracking-wide;
+  }
+
+  /* ปุ่ม Success แบบดูหรูขึ้น */
+  .btn-success {
+    @apply bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold
+           hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200/50 
+           active:scale-95 transition-all flex items-center justify-center gap-3;
+  }
+
+  /* Header Section: ดูโปร่ง สบายตา */
+  .header-section {
+    @apply mb-16 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-10;
+  }
+
+  /* Input Form: ขอบมน และ Focus state ที่ดูนุ่มนวล */
+  .form-input {
+    @apply w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl
+           focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 
+           outline-none transition-all text-slate-900 placeholder:text-slate-400;
+  }
+
+  /* Label สำหรับ Form */
+  .form-label {
+    @apply block text-sm font-semibold text-slate-700 mb-2 ml-1;
+  }
+
+  /* ตารางข้อมูล (ถ้ามี) */
+  .data-table-container {
+    @apply bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm;
+  }
+}
+
+/* เพิ่ม Animation เล็กน้อยให้ระบบดูพรีเมียม */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}

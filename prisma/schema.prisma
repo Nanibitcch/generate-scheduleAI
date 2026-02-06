@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 🚩 [UPDATED] เพิ่มการรองรับ Supabase Connection Pool
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // เพิ่มบรรทัดนี้เพื่อใช้ตอน npx prisma db push
+}
+
+// 1. ตารางอาจารย์
+model teachers {
+  teacher_id              Int                       @id @default(autoincrement())
+  title                   String?                    @db.VarChar(20)  
+  first_name              String                     @db.VarChar(100) 
+  last_name               String                     @db.VarChar(100) 
+  name                    String                     @db.VarChar(250) 
+  max_hours_per_week      Int?                       @default(20)
+  
+  course_enrollments      course_enrollments[]
+  schedules               schedules[]
+  teacher_preferred_slots teacher_preferred_slots[]
+
+  @@unique([first_name, last_name])
+}
+
+// 2. ช่วงเวลาที่อาจารย์สะดวก
+model teacher_preferred_slots {
+  teacher_id  Int
+  day_of_week day_name
+  start_time  DateTime @db.Time(6)
+  end_time    DateTime @db.Time(6)
+  teachers    teachers @relation(fields: [teacher_id], references: [teacher_id], onDelete: Cascade)
+
+  @@id([teacher_id, day_of_week, start_time])
+}
+
+// 3. ตารางวิชา
+model courses {
+  course_id          Int                  @id @default(autoincrement())
+  course_code        String                @unique @db.VarChar(20)
+  subject_name       String                @db.VarChar(100)
+  theory_hours       Int?                 @default(0)
+  lab_hours          Int?                 @default(0)
+  is_remedial        Boolean?             @default(false)
+  course_enrollments course_enrollments[]
+}
+
+// 4. ตารางกลุ่มเรียน
+model student_groups {
+  group_id           Int                  @id @default(autoincrement())
+  level              String?              @db.VarChar(20)  
+  academic_year      String?              @db.VarChar(10)  
+  major              String?              @db.VarChar(100) 
+  group_name         String                @db.VarChar(50)  
+  student_count      Int?
+  
+  home_room_id       Int?
+  home_room          rooms?                @relation("HomeRoom", fields: [home_room_id], references: [room_id])
+
+  course_enrollments course_enrollments[]
+  schedules          schedules[]          // 🚩 เชื่อมโยงเพื่อให้ดึงตารางสอนรายห้องได้ทันที
+
+  // เชื่อมไปยังตาราง Mapping แยก
+  mapping_as_main    combined_group_mappings[] @relation("MainGroupRel")
+  mapping_as_sub      combined_group_mappings[] @relation("SubGroupRel")
+
+  @@unique([level, academic_year, major, group_name])
+}
+
+// 5. ตารางจับคู่กลุ่มเรียนร่วม (Combined Mapping)
+model combined_group_mappings {
+  mapping_id     Int            @id @default(autoincrement())
+  combined_name  String?        @db.VarChar(100) 
+  main_group_id  Int            
+  sub_group_id   Int            @unique 
+
+  main_group     student_groups @relation("MainGroupRel", fields: [main_group_id], references: [group_id], onDelete: Cascade)
+  sub_group      student_groups @relation("SubGroupRel", fields: [sub_group_id], references: [group_id], onDelete: Cascade)
+
+  created_at     DateTime       @default(now())
+}
+
+// 6. การมอบหมายงานสอน
+model course_enrollments {
+  enrollment_id      Int            @id @default(autoincrement())
+  course_id          Int
+  group_id           Int
+  teacher_id         Int
+  preferred_room_id  Int?           
+  
+  is_combined        Boolean?       @default(false)
+  combined_with      String?        @db.VarChar(100) 
+  
+  courses            courses        @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
+  student_groups     student_groups @relation(fields: [group_id], references: [group_id], onDelete: Cascade)
+  teachers           teachers       @relation(fields: [teacher_id], references: [teacher_id], onDelete: Cascade)
+  
+  preferred_room     rooms?         @relation("PreferredRoom", fields: [preferred_room_id], references: [room_id])
+  
+  schedules          schedules[]
+}
+
+// 7. ห้องเรียน
+model rooms {
+  room_id          Int                  @id @default(autoincrement())
+  room_name        String               @db.VarChar(100)
+  room_number      String               @db.VarChar(20)
+  capacity         Int?
+  equipment_list   String?
+  
+  schedules        schedules[]
+  enrollments      course_enrollments[] @relation("PreferredRoom")
+  group_home_rooms student_groups[]     @relation("HomeRoom")
+}
+
+// 8. ตารางสอนจริง
+model schedules {
+  schedule_id        Int                @id @default(autoincrement())
+  enrollment_id      Int
+  room_id            Int
+  teacher_id         Int
+  group_id           Int                // 🚩 ล็อคเป้ากลุ่มเรียนเพื่อให้ Query รายห้องได้เร็ว
+  day_of_week        day_name
+  start_time         DateTime           @db.Time(6)
+  end_time           DateTime           @db.Time(6)
+  type_of_slot       slot_type          @default(theory)
+  is_confirmed       Boolean?           @default(false)
+  
+  course_enrollments course_enrollments @relation(fields: [enrollment_id], references: [enrollment_id], onDelete: Cascade)
+  rooms              rooms              @relation(fields: [room_id], references: [room_id], onDelete: Cascade)
+  teachers           teachers           @relation(fields: [teacher_id], references: [teacher_id], onDelete: Cascade)
+  student_groups     student_groups     @relation(fields: [group_id], references: [group_id], onDelete: Cascade)
+}
+
+// 9.ตารางผู้ใช้งาน
+model users {
+  user_id    Int      @id @default(autoincrement())
+  username   String   @unique
+  password   String   // แนะนำให้เก็บเป็น Hash นะไอ้สอง!
+  name       String
+  role       String   @default("staff") // admin หรือ staff
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([username])
+}
+
+// --- ENUMS ---
+
+enum day_name {
+  Mon
+  Tue
+  Wed
+  Thu
+  Fri
+  Sat
+}
+
+enum slot_type {
+  theory
+  lab
+}
