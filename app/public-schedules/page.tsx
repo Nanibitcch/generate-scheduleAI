@@ -91,7 +91,7 @@ export default function PublicSchedules() {
           word-wrap: break-word !important;
           overflow: hidden !important;
         }
-          
+
         /* 🚩 ส่วนตั้งค่าตอนสั่งปริ้น (Print Mode) - ฉบับรวมร่าง ไม่ตัดอะไรออก */
         @media print {
           @page { 
@@ -136,6 +136,23 @@ export default function PublicSchedules() {
             page-break-inside: avoid !important;
             break-inside: avoid !important;
           }
+            /* 🚀 ทลายกำแพง Container ที่บังตาราง */
+          .relative, .overflow-x-auto, .overflow-hidden {
+            overflow: visible !important;
+            display: block !important;
+          }
+
+          /* 🚀 ปรับขนาดตัวหนังสือในตารางให้เล็กลงอัตโนมัติถ้ามันล้น */
+          table {
+            width: 100% !important;
+            table-layout: auto !important; /* เปลี่ยนจาก fixed เป็น auto เพื่อให้มันบีบช่องตามเนื้อหา */
+          }
+
+            /* 🚀 ลบระยะห่างที่อาจจะทำให้ตารางกระเด็นหลุดหน้า */
+            html, body {
+              width: 100% !important;
+              height: auto !important;
+            }
 
           /* 🚩 Hardcode สีพื้นหลัง (เน้นสีให้เข้มขึ้นเล็กน้อยเพื่อการพิมพ์) */
           .bg-blue-50\/50, .bg-blue-50 { background-color: #eff6ff !important; }
