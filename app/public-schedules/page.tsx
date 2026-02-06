@@ -80,61 +80,80 @@ export default function PublicSchedules() {
       <style jsx global>{`
         /* 🚩 ส่วนตั้งค่าตารางปกติ (Web View) */
         table { 
-          border-collapse: separate !important; 
-          border-spacing: 0 !important;
+          border-collapse: collapse !important; /* เปลี่ยนจาก separate เป็น collapse เพื่อให้เส้นขอบไม่ซ้อนกัน */
           width: 100% !important;
           table-layout: fixed !important;
           border: 1px solid black !important;
         }
         th, td { 
-          border-right: 1px solid black !important;
-          border-bottom: 1px solid black !important;
-          border-left: 1px solid black !important; 
-          border-top: 1px solid black !important;
+          border: 1px solid black !important; /* รวมคำสั่งให้สั้นลงแต่แรงขึ้น */
           padding: 2px !important;
+          word-wrap: break-word !important;
+          overflow: hidden !important;
         }
-
-        /* 🚩 ส่วนตั้งค่าตอนสั่งปริ้น (Print Mode) */
+          
+        /* 🚩 ส่วนตั้งค่าตอนสั่งปริ้น (Print Mode) - ฉบับรวมร่าง ไม่ตัดอะไรออก */
         @media print {
           @page { 
             size: A4 landscape; 
-            margin: 0.5cm; 
+            margin: 0.5cm; /* ใช้ระยะจากชุดที่สองที่มึงให้มา */
           }
           
-          /* บังคับให้บราวเซอร์ดึงสีพื้นหลังออกมาทุุกจุด */
+          /* 🚀 หัวใจสำคัญ: บังคับให้บราวเซอร์ดึงสีออกมาทุุกจุด */
           * { 
             -webkit-print-color-adjust: exact !important; 
             print-color-adjust: exact !important; 
+            color-adjust: exact !important;
           }
           
-          body { background: white !important; }
+          body { 
+            background: white !important; 
+            -webkit-print-color-adjust: exact !important;
+          }
+
           .no-print { display: none !important; }
           
-          /* ล็อคขอบเส้นตารางให้เป็นสีดำสนิท */
+          /* 🚀 ล็อคขอบเส้นตารางให้ชัดเจนที่สุด */
+          table { 
+            border-collapse: collapse !important;
+            width: 100% !important;
+            -webkit-print-color-adjust: exact !important;
+          }
+
+          /* รวมความแกร่ง: ทั้ง border-color black และ 0.5pt solid เพื่อความคม */
           table, thead, tbody, tr, th, td { 
-            border-color: black !important; 
+            border: 0.5pt solid black !important; 
+            border-color: black !important;
             visibility: visible !important; 
             opacity: 1 !important; 
           }
-          
-          /* ป้องกันสีพื้นหลังไปทับเส้นขอบ */
+
+          /* ป้องกันสีพื้นหลังทับเส้นขอบ ตามที่มึงเพิ่มมา */
           td { background-clip: padding-box !important; }
 
-          /* 🚩 Hardcode สีพื้นหลังให้เครื่องปริ้นรู้จัก (Tailwind Opacity บางทีปริ้นไม่ออก) */
+          /* 🚀 ป้องกันตารางขาดครึ่งหน้า (สำคัญมาก!) */
+          tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+
+          /* 🚩 Hardcode สีพื้นหลัง (เน้นสีให้เข้มขึ้นเล็กน้อยเพื่อการพิมพ์) */
           .bg-blue-50\/50, .bg-blue-50 { background-color: #eff6ff !important; }
           .bg-slate-100 { background-color: #f1f5f9 !important; }
           .bg-red-50 { background-color: #fef2f2 !important; }
+          .bg-gray-100 { background-color: #f3f4f6 !important; }
+          .bg-yellow-50 { background-color: #fefce8 !important; }
 
-          /* ปรับขนาดฟอนต์ให้ใหญ่ขึ้นเล็กน้อยเพื่อความชัดเจนบนกระดาษ */
+          /* ปรับขนาดฟอนต์ (อ้างอิงตามค่าที่มึงให้มาล่าสุด) */
           .text-[6.5px] { font-size: 7.5px !important; }
           .text-[10px] { font-size: 11px !important; }
           
-          /* ลบเงาและขอบมนที่ดูรกออกตอนปริ้น */
           .print-area { 
             border: none !important; 
             padding: 0 !important; 
             width: 100% !important; 
             box-shadow: none !important; 
+            display: block !important;
           }
         }
       `}</style>
